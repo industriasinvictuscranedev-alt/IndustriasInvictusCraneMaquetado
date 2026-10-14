@@ -27,7 +27,7 @@ const G = {
     u: [['UL-40', 'Underlift para arrastre sin dañar el vehículo.', '4 toneladas', 40, '1.8 m', 45, '10,000 lbs', 50], ['UL-60', 'Underlift para unidades de carga media.', '6 toneladas', 60, '2.2 m', 65, '14,000 lbs', 70], ['UL-85', 'Underlift pesado para autobuses y tractocamiones.', '8.5 toneladas', 85, '2.8 m', 88, '20,000 lbs', 90]]
 };
 const ACC = [['Cadena grado 80', 'Cadena de amarre de 3/8" para carga pesada.', '$1,850'], ['Gancho de arrastre', 'Gancho forjado con seguro, 10 ton.', '$980'], ['Malacate eléctrico', 'Malacate 12V de 9,000 lbs con control.', '$12,400'], ['Barra de luces LED', 'Barra ámbar de emergencia, 48".', '$3,200'], ['Eslinga de remolque', 'Eslinga de poliéster de 8 m, 5 ton.', '$760'], ['Cuñas de rueda', 'Par de cuñas antideslizantes.', '$540'], ['Cadena de seguridad', 'Juego de 2 cadenas con ganchos.', '$1,450'], ['Kit de señalización', 'Conos, banderas y triángulos.', '$890']];
-const cover = (t, s, b) => `<div class="cvr${b ? ' b2' : ''}"><div class="logo"><i>I</i>INVICTUS</div><h2>${t}</h2><p>${s}</p></div>`;
+const cover = (t, s, b) => `<div class="cvr${b ? ' b2' : ''}"><img class="cover-logo" src="logo-invictus.png" alt="Invictus Crane"><h2>${t}</h2><p>${s}</p></div>`;
 const item = (k, x) => `<div class="it">${truck(k)}<h3>${x[0]}</h3><small>${T[k]}</small><p>${x[1]}</p><p><b>${L[k][0]}:</b> ${x[2]}</p><a class="btn g" target="_blank" href="${wa('Hola, quiero cotizar la grúa ' + x[0] + ' (' + T[k] + ')')}">Cotizar por WhatsApp</a></div>`;
 const pacc = (x, i) => `<div class="it">${acc(i)}<h3>${x[0]}</h3><small>Accesorio</small><p>${x[1]}</p><p class="pr">${x[2]} MXN</p><small style="color:var(--m)">IVA incluido</small><button class="btn g" onclick="buy(${i})">Comprar</button></div>`;
 function book(P, el) {
@@ -40,8 +40,22 @@ function book(P, el) {
     addEventListener('keydown', e => { if (e.key == 'ArrowRight') go(1); if (e.key == 'ArrowLeft') go(-1) }); up()
 }
 function cartUI() {
-    const c = J('inv_c', '[]'), e = $('#cart'); if (!e) return; const t = c.reduce((a, i) => a + parseInt(ACC[i][2].replace(/\D/g, '')), 0);
-    e.innerHTML = c.length ? `<b>${c.length} artículo(s) · Total $${t.toLocaleString('es-MX')} MXN (IVA incluido)</b> <button class="btn g" onclick="toast('El pago con Mercado Pago se conecta con el backend')">Finalizar compra</button> <button class="btn" onclick="localStorage.inv_c='[]';cartUI()">Vaciar</button>` : 'Tu carrito está vacío.'
+    const c = J('inv_c', '[]');
+    const badge = $('#cartCount'); if (badge) badge.textContent = c.length;
+    const e = $('#cart'); if (!e) return;
+    const t = c.reduce((a, i) => a + parseInt(ACC[i][2].replace(/\\D/g, '')), 0);
+    e.innerHTML = c.length ? `<div class="drawer-items">${c.map((i,n)=>`<div class="drawer-item"><div><b>${ACC[i][0]}</b><small>${ACC[i][2]} MXN</small></div><button class="drawer-remove" data-remove="${n}" aria-label="Quitar ${ACC[i][0]}">×</button></div>`).join('')}</div><b class="drawer-total">${c.length} artículo(s) · Total $${t.toLocaleString('es-MX')} MXN</b><button class="btn g" id="checkoutCart">Finalizar compra</button><button class="btn" id="clearCart">Vaciar carrito</button>` : '<p class="empty-cart">Tu carrito está vacío.</p>';
+    $$('#cart [data-remove]').forEach(b=>b.onclick=()=>{const next=J('inv_c','[]');next.splice(Number(b.dataset.remove),1);localStorage.inv_c=JSON.stringify(next);cartUI()});
+    const clear=$('#clearCart'); if(clear) clear.onclick=()=>{localStorage.inv_c='[]';cartUI()};
+    const checkout=$('#checkoutCart'); if(checkout) checkout.onclick=()=>toast('El pago con Mercado Pago se conecta con el backend');
+}
+function setupCartDrawer() {
+    if (!$('#cartDrawer')) document.body.insertAdjacentHTML('beforeend', '<div class="drawer-shade" id="cartShade"></div><aside class="cart-drawer" id="cartDrawer" aria-label="Carrito de compras" aria-hidden="true"><div class="drawer-head"><h2>Tu carrito</h2><button id="closeCart" aria-label="Cerrar carrito">×</button></div><div id="cart"></div></aside>');
+    const drawer=$('#cartDrawer'), shade=$('#cartShade');
+    const close=()=>{drawer.classList.remove('open');shade.classList.remove('open');drawer.setAttribute('aria-hidden','true')};
+    const open=()=>{cartUI();drawer.classList.add('open');shade.classList.add('open');drawer.setAttribute('aria-hidden','false')};
+    $$('.cart-nav').forEach(a=>{a.href='#cartDrawer';a.onclick=e=>{e.preventDefault();open()}});
+    $('#closeCart').onclick=close; shade.onclick=close;
 }
 function buy(i) {
     if (!J('inv_u', 'null')) { toast('Necesitas una cuenta para comprar. Te llevamos a crearla…'); setTimeout(() => location.href = 'cuenta.html?next=accesorios.html#registro', 1700); return }
@@ -71,7 +85,7 @@ function auth() {
     }
 }
 const hd = $('header'); addEventListener('scroll', () => hd.classList.toggle('s', scrollY > 40)); $('#bg').onclick = () => $('nav').classList.toggle('open');
-$$('.tr').forEach(e => e.innerHTML = truck(e.dataset.t)); $$('.rd div').forEach(e => e.innerHTML = truck('p'));
+$$('.tr').forEach(e => e.innerHTML = truck(e.dataset.t)); $$('.rd div').forEach(e => e.innerHTML = `<svg class="animated-truck" viewBox="0 0 520 150" role="img" aria-label="Camión de auxilio animado"><ellipse cx="255" cy="127" rx="220" ry="9" fill="#000" opacity=".12"/><g class="truck-body"><path d="M30 43h260v70H30z" fill="#d8a72e"/><path d="M290 64h90l55 40v9H290z" fill="#f0bd3e"/><path d="M320 72h52l35 27h-87z" fill="#d9eff5"/><path d="M45 52h230v9H45z" fill="#fff" opacity=".8"/><path d="M72 20h145v23H72z" fill="#263746"/><text x="144" y="36" font-size="12" text-anchor="middle" fill="white" font-weight="bold">INVICTUS</text><rect x="12" y="103" width="443" height="10" rx="3" fill="#344653"/><g class="truck-wheel wheel-a"><circle cx="105" cy="113" r="22" fill="#202a32"/><circle cx="105" cy="113" r="10" fill="#b9c4c8"/></g><g class="truck-wheel wheel-b"><circle cx="365" cy="113" r="22" fill="#202a32"/><circle cx="365" cy="113" r="10" fill="#b9c4c8"/></g><path d="M172 43l70-22 8 8-60 25" stroke="#344653" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M244 28l31 10-8 7-30-10z" fill="#d8a72e"/></g></svg>`); setupCartDrawer(); cartUI();
 const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target) } }), { threshold: .15 }); $$('.rv').forEach(e => io.observe(e));
 const sl = $$('.sl'); if (sl.length) {
     let c = 0, t; const d = $('.dts'), show = i => { c = (i + sl.length) % sl.length; sl.forEach((s, k) => s.classList.toggle('on', k == c)); $$('button', d).forEach((b, k) => b.classList.toggle('on', k == c)); clearInterval(t); t = setInterval(() => show(c + 1), 6500) };

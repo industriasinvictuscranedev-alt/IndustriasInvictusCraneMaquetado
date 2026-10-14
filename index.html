@@ -16,6 +16,7 @@
                 Lift</a><a href="underlift.html">Underlift</a><a href="accesorios.html">Accesorios</a><a
                 href="catalogo.html">Catálogo</a><a href="reparaciones.html">Reparaciones</a><a
                 href="cuenta.html">Iniciar sesión / Registrarse</a></nav>
+        <a class="cart-nav" href="#cartDrawer" aria-label="Abrir carrito de compra">🛒 <span class="cart-count" id="cartCount">0</span></a>
         <div class="soc"><a href="#" aria-label="Facebook"><svg class="ic" viewBox="0 0 24 24">
                     <path
                         d="M14 8h2.5V4.5H14C11.500 4.500 10 6 10 8.500v2H7.500V14H10v6.500h3.500V14H16l.5-3.500h-3V9c0-.600.400-1 1.500-1z" />
@@ -129,7 +130,7 @@
     <script>
         const makeHomeBook = (P, id) => { const el = document.getElementById(id); if (!el) return; const oldct = document.getElementById('ct' + id.replace('bk', '')); book(P, el); const prev = document.getElementById('pv' + id.replace('bk', '')), next = document.getElementById('nx' + id.replace('bk', '')); if (prev) prev.onclick = () => el.querySelector('.lf')?.click(); if (next) next.onclick = () => el.querySelector('.lf')?.click() };
         const H1 = [cover('Catálogo de grúas', 'Industrias Invictus Crane · 2026')]; for (const k in G) G[k].slice(0, 2).forEach(x => H1.push(item(k, x))); H1.push(cover('Invictus Crane', 'Ingeniería mexicana', 1));
-        const H2 = [cover('Accesorios', 'Componentes y soluciones')]; ACC.slice(0, 6).forEach((x, i) => H2.push(`<div class="it">${acc(i)}<h3>${x[0]}</h3><small>Accesorios</small><p>${x[1]}</p><p class="pr">${x[2]} MXN</p></div>`)); H2.push(cover('Accesorios Invictus', 'Calidad y respaldo', 1));
+        const H2 = [cover('Accesorios', 'Componentes y soluciones')]; ACC.slice(0, 6).forEach((x, i) => H2.push(`<div class="it">${acc(i)}<h3>${x[0]}</h3><small>Accesorios</small><p>${x[1]}</p><p class="pr">${x[2]} MXN</p><button class="btn g" onclick="buy(${i})">Comprar</button></div>`)); H2.push(cover('Accesorios Invictus', 'Calidad y respaldo', 1));
         const initBook = (P, id) => { const el = document.getElementById(id); book(P, el); let idx = 0; const pages = () => el.querySelectorAll('.lf'); const go = d => { const p = pages(); idx = Math.max(0, Math.min(p.length, idx + d)); p.forEach((l, k) => { l.classList.toggle('f', k < idx); l.style.zIndex = k < idx ? k : p.length - k }); el.querySelector('.in').style.transform = idx === 0 ? 'none' : idx === p.length ? 'translateX(100%)' : 'translateX(50%)'; document.getElementById('ct' + id.slice(2)).textContent = idx === 0 ? 'Portada' : idx === p.length ? 'Contraportada' : 'Páginas ' + (2 * idx) + ' y ' + (2 * idx + 1) }; document.getElementById('pv' + id.slice(2)).onclick = () => go(-1); document.getElementById('nx' + id.slice(2)).onclick = () => go(1); go(0) };
         initBook(H1, 'bkHome1'); initBook(H2, 'bkHome2');
     </script>
